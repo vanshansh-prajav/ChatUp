@@ -1,9 +1,9 @@
 import React, { useContext } from 'react'
 import { activeContact } from '../Home'
-const Contact = ({ chatId, id, profilePicture, name, latestMessage, setComponentName }) => {
-  const setCurrentContact = useContext(activeContact);
+const Contact = ({ chatKey, chatId, id, profilePicture, name, latestMessage, setComponentName }) => {
+  const {currentContact, setCurrentContact} = useContext(activeContact);
   const change = () => {
-    setCurrentContact({contactName: name, recipientId: id, profilePicture: profilePicture, chatId});
+    setCurrentContact({contactName: name, recipientId: id, profilePicture: profilePicture, chatId, chatKey});
     setComponentName();
   }
   return (

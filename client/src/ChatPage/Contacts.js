@@ -8,7 +8,7 @@ const Contacts = ({ contacts, setName }) => {
       <div className='flex flex-col gap-1 p-2'>
         {(contacts && contacts.length > 0) ? (
           contacts.map((contact) => (
-            <Contact key={contact.chatId} profilePicture={contact.user.profilePicture} chatId={contact.chatId} id={contact.user.id} name={contact.user.name} setComponentName={() => setName("chat")} />
+            <Contact key={contact.chatId} chatKey={contact.chatKey} profilePicture={contact.user.profilePicture} chatId={contact.chatId} id={contact.user.id} name={contact.user.name} setComponentName={() => setName("chat")} />
           ))
         ) : (
           <p>No contacts available</p>

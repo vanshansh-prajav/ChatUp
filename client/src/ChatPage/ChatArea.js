@@ -1,10 +1,11 @@
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import React, { Children, useContext, useEffect, useRef, useState } from 'react'
 import Button from '../Utilities/Button'
 import Message from '../Utilities/Message'
 
+import { encrypt, decrypt } from '../Crypto/utility'
 import { userData } from '../Home'
 
-const ChatArea = ({ name, profilePicture, id, chatId }) => {
+const ChatArea = ({ name, profilePicture, id, chatKey, chatId }) => {
   const user = useContext(userData);
   const textInputRef = useRef();
   const lastMessageRef = useRef(null);
@@ -15,14 +16,19 @@ const ChatArea = ({ name, profilePicture, id, chatId }) => {
     const hours = now.getHours();
     const minutes = now.getMinutes();
     const curentTime = `${hours}:${minutes}`;
+    
+    const encryptedMessage = await encrypt(chatKey, message);
+    
     let newMessage = { message: message, ownerId: user.id, time: curentTime, chatId };
+    
+    let newMessageEnc = { message: encryptedMessage, ownerId: user.id, time: curentTime, chatId };
     setMessageList((prevList) => [...prevList, newMessage]);
     await fetch(`https://ppng.io/${user.id}-${id}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(newMessage)
+      body: JSON.stringify(newMessageEnc)
     }).then(() => {
       textInputRef.current.value = "";
     });
@@ -31,7 +37,7 @@ const ChatArea = ({ name, profilePicture, id, chatId }) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(newMessage)
+      body: JSON.stringify(newMessageEnc)
     });
   }
   // useEffect(() => {
@@ -62,6 +68,10 @@ const ChatArea = ({ name, profilePicture, id, chatId }) => {
           }
 
           const newMessage = await res.json();
+          
+          const decryptedMessage = await decrypt(chatKey, {cipherText: newMessage.message.cipherText, nonce: newMessage.message.nonce});
+          newMessage.message = decryptedMessage;
+          
           setMessageList((prevList) => [...prevList, newMessage]);
 
           retryCount = 0;
@@ -97,8 +107,11 @@ const ChatArea = ({ name, profilePicture, id, chatId }) => {
 
       const chats = JSON.parse(await response.json());
       const processedChat = [];
-      chats.forEach((chat) => {
-        processedChat.push({ message: chat.message, ownerId: chat.ownerId, time: chat.time, chatId, id: chat.id })
+      chats.forEach(async (chat) => {
+        
+        const decryptedMessage = await decrypt(chatKey, {cipherText: chat.message.cipherText, nonce: chat.message.nonce});
+        
+        processedChat.push({ message: decryptedMessage, ownerId: chat.ownerId, time: chat.time, chatId, id: chat.id })
       })
       setMessageList(processedChat);
     } catch (error) {

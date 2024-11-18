@@ -39,7 +39,7 @@ const Home = () => {
 
   const component = () => {
     switch (componentName) {
-      case "chat": return <ChatArea name={currentContact.contactName} chatId={currentContact.chatId} profilePicture={currentContact.profilePicture} id={currentContact.recipientId}/>;
+      case "chat": return <ChatArea name={currentContact.contactName} chatKey={currentContact.chatKey} chatId={currentContact.chatId} profilePicture={currentContact.profilePicture} id={currentContact.recipientId}/>;
       case "add": return <AddChat updateContacts={fetchContacts} />;
       case "settings": return <Settings />;
       default: return <></>;

@@ -11,6 +11,13 @@ const {
     where
 } = require("firebase/firestore");
 
+const sodium = require('libsodium-wrappers');
+async function generateKey() {
+    await sodium.ready; // Ensure sodium is initialized
+    const key = sodium.randombytes_buf(sodium.crypto_secretbox_KEYBYTES);
+    return sodium.to_base64(key);
+}
+
 const firebaseConfig = {
     apiKey: "AIzaSyA5W4E4ArLjNbMMfkMeptVNSHM1Eec-AJ4",
     authDomain: "chatapp-5ac1e.firebaseapp.com",
@@ -92,8 +99,10 @@ const findUser = async ({ searchMail, userId }) => {
                 throw new Error("Chat already exists");
             }
             const usersChatDocRef = await addDoc(usersChatCollectionRef, {});
+            const userChatKey = await generateKey();
             const chatData = {
                 chatId: usersChatDocRef.id,
+                chatKey: userChatKey,
                 user1: user1,
                 user2: user2
             }
@@ -148,19 +157,22 @@ const getContacts = async ({ userId }) => {
         const allDocsSnapshot = await getDocs(usersChatCollectionRef);
         allDocsSnapshot.forEach((doc) => {
             const chatId = doc.data().chatId
+            const chatKey = doc.data().chatKey;
             const user1 = doc.data().user1;
             const user2 = doc.data().user2;
             let obj;
             if (user1.id === userId) {
                 obj = {
                     user: user2,
-                    chatId: chatId
+                    chatId: chatId,
+                    chatKey: chatKey
                 };
             }
             if (user2.id === userId) {
                 obj = {
                     user: user1,
-                    chatId: chatId
+                    chatId: chatId,
+                    chatKey: chatKey
                 };
             }
             if (obj)
